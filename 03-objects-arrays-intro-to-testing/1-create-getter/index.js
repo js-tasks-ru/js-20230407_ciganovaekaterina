@@ -4,13 +4,14 @@
  * @returns {function} - function-getter which allow get value from object by set path
  */
 export function createGetter(path) {
+  const arr = path.split('.');
   return function(obj) {
     if (!Object.keys(obj).length) {
       console.error('Пустой объект');
       return;
     }
 
-    return path.split('.').reduce((obj, key) => {
+    return arr.reduce((obj, key) => {
       if (!obj || !obj.hasOwnProperty(key)) {
         console.error(`Свойство ${key} не найдено`);
         return;
