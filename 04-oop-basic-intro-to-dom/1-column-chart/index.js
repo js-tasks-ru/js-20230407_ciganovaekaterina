@@ -14,12 +14,12 @@ export default class ColumnChart {
     const maxValue = Math.max(...this.data);
     const scale = 50 / maxValue;
 
-    return this.data.reduce((str, item) => {
+    return this.data.map((item) => {
       const percent = (item / maxValue * 100).toFixed(0) + '%';
       const value = String(Math.floor(item * scale));
 
-      return str + `<div style="--value: ${value}" data-tooltip="${percent}"></div>`;
-    }, '');
+      return `<div style="--value: ${value}" data-tooltip="${percent}"></div>`;
+    }).join('');
   }
 
   getTemplate() {
@@ -38,13 +38,13 @@ export default class ColumnChart {
   }
 
   render() {
-    let wrapper = document.createElement('div');
+    const wrapper = document.createElement('div');
     wrapper.innerHTML = this.getTemplate();
     this.element = wrapper.firstElementChild;
   }
 
   destroy() {
-
+    this.remove();
   }
 
   remove() {
