@@ -1,5 +1,5 @@
 export default class NotificationMessage {
-  //duration = 1000;
+  static activeNotification;
 
   constructor(massage, {duration = 1000, type = "success"} = {}) {
     this.message = massage;
@@ -25,20 +25,26 @@ export default class NotificationMessage {
     return notification.firstElementChild;
   }
 
-  destroy() {
-    this.element.remove();
-  }
+  show(element = document.body) {
+    if (NotificationMessage.activeNotification) {
+      NotificationMessage.activeNotification.remove();
+    }
 
-  show(element) {
-    this.remove();
-    (element || document.body).append(this.element);
-    setTimeout(() => this.destroy(), this.duration);
+    (element).append(this.element);
+    setTimeout(() => this.remove(), this.duration);
+
+    NotificationMessage.activeNotification = this;
   }
 
   remove() {
-    const element = document.querySelector('.notification');
-    if (element) {
-      element.parentNode.removeChild(element);
+    if (this.element){
+      this.element.remove();
     }
+  }
+
+  destroy() {
+    this.remove();
+    this.element = null;
+    NotificationMessage.activeNotification = null;
   }
 }
