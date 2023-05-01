@@ -66,7 +66,7 @@ export default class SortableTable {
     return wrapper.firstElementChild;
   }
 
-  sort(field, order= 'asc') {
+  sort(field, order = 'asc') {
     const direction = order === 'desc' ? -1 : 1;
     const sortType = this.headerConfig.find((item) => item.id === field).sortType || 'string';
 

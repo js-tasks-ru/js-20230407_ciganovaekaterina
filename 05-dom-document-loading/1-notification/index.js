@@ -37,7 +37,7 @@ export default class NotificationMessage {
   }
 
   remove() {
-    if (this.element){
+    if (this.element) {
       this.element.remove();
     }
   }
