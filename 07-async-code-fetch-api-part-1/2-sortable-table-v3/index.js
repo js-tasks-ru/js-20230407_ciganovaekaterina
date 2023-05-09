@@ -9,6 +9,8 @@ export default class SortableTable {
   start = 0;
   end = this.start + this.step;
 
+  subElements = {};
+
   constructor(headersConfig, {
     data = [],
     sorted = {},
@@ -34,9 +36,9 @@ export default class SortableTable {
     return await fetchJson(this.url);
   }
 
-  get subElements() {
+  getSubElements(element) {
     const result = {};
-    const elements = this.element.querySelectorAll('[data-element]');
+    const elements = element.querySelectorAll('[data-element]');
     for (const el of elements) {
       result[el.dataset.element] = el;
     }
@@ -73,7 +75,7 @@ export default class SortableTable {
 
   getCells(item) {
     return this.headersConfig.map((cell) => {
-      if (cell.id === 'images') {
+      if (cell.template) {
         return cell.template(item[cell.id]);
       }
       return `<div class="sortable-table__cell">${item[cell.id]}</div>`;
@@ -105,6 +107,7 @@ export default class SortableTable {
     wrapper.innerHTML = this.template;
 
     this.element = wrapper.firstElementChild;
+    this.subElements = this.getSubElements(this.element);
 
     await this.update();
   }
@@ -203,6 +206,7 @@ export default class SortableTable {
   destroy() {
     this.remove();
     this.element = null;
+    this.subElements = {};
     SortableTable.activeSortedCell = null;
   }
 }
