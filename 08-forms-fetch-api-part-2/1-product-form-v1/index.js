@@ -15,49 +15,59 @@ export default class ProductForm {
   product = {};
   urlProduct = new URL('api/rest/products', BACKEND_URL);
 
+  defaultData = {
+    title: '',
+    description: '',
+    images: [],
+    subcategory: '',
+    price: 0,
+    quantity: 0,
+    discount: 0
+  }
+
+  subElements = {};
+
   constructor (productId) {
     this.productId = productId;
   }
 
-  async fetchProduct() {
-    this.urlProduct.searchParams.set('id', this.productId);
-    const data = await fetchJson(this.urlProduct);
-    return data[0];
+  getSubElements(element) {
+    const result = {};
+    const elements = element.querySelectorAll('[data-element]');
+    for (const el of elements) {
+      result[el.dataset.element] = el;
+    }
+
+    return result;
   }
 
-  async fetchCategories() {
+  fetchProduct() {
+    this.urlProduct.searchParams.set('id', this.productId);
+    return fetchJson(this.urlProduct);
+  }
+
+  fetchCategories() {
     for (const [key, value] of Object.entries(this.sortedCategories)) {
       this.urlCategories.searchParams.set(key, value);
     }
-    return await fetchJson(this.urlCategories);
-  }
-
-  getSubcategories(categories) {
-    return categories.map((item) => {
-      return item.subcategories.map((subcategory) => {
-        return {
-          title: `${item.title} &gt; ${subcategory.title}`,
-          value: subcategory.id
-        };
-      });
-    }).flat();
+    return fetchJson(this.urlCategories);
   }
 
   get subcategoryTemplate() {
-    const subcategories = this.getSubcategories(this.categories);
-    const options = subcategories.map((subcategory) => {
-      return `<option
-                value=${subcategory.value}
-                ${this.product.subcategory && this.product.subcategory === subcategory.value ? 'selected' : ''}
-              >${subcategory.title}</option>`;
-    }).join('');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = '<select id="subcategory" class="form-control" name="subcategory"></select>';
+    const select = wrapper.firstElementChild;
+    for (const category of this.categories) {
+      for (const item of category.subcategories){
+        select.append(new Option(`${category.title} > ${item.title}`, item.id, this.product.subcategory && this.product.subcategory === item.id))
+      }
+    }
 
-    return `<select class="form-control" name="subcategory">${options}</select>`;
+    return select.outerHTML;
   }
 
   get imageListTemplate() {
-    if (!this.product.images || this.product.images.length === 0) {return;}
-
+    if (!this.product.images || this.product.images.length === 0) {return '';}
     return `<div data-element="imageListContainer">
           <ul class="sortable-list">
             ${this.product.images.map((image) => {
@@ -86,6 +96,7 @@ export default class ProductForm {
         <fieldset>
           <label class="form-label">Название товара</label>
           <input
+            id="title"
             required=""
             type="text"
             name="title"
@@ -98,6 +109,7 @@ export default class ProductForm {
       <div class="form-group form-group__wide">
         <label class="form-label">Описание</label>
         <textarea
+          id="description"
           required=""
           class="form-control"
           name="description"
@@ -117,6 +129,7 @@ export default class ProductForm {
         <fieldset>
           <label class="form-label">Цена ($)</label>
           <input
+            id="price"
             required=""
             type="number"
             name="price"
@@ -128,6 +141,7 @@ export default class ProductForm {
         <fieldset>
           <label class="form-label">Скидка ($)</label>
           <input
+            id="discount"
             required=""
             type="number"
             name="discount"
@@ -140,6 +154,7 @@ export default class ProductForm {
       <div class="form-group form-group__part-half">
         <label class="form-label">Количество</label>
         <input
+          id="quantity"
           required=""
           type="number"
           class="form-control"
@@ -150,7 +165,7 @@ export default class ProductForm {
       </div>
       <div class="form-group form-group__part-half">
         <label class="form-label">Статус</label>
-        <select class="form-control" name="status">
+        <select id="status" class="form-control" name="status">
           <option value="1" ${this.product.status && this.product.status === 1 ? 'selected' : ''}>Активен</option>
           <option value="0" ${this.product.status && this.product.status === 0 ? 'selected' : ''}>Неактивен</option>
         </select>
@@ -165,15 +180,38 @@ export default class ProductForm {
   }
 
   async render () {
-    this.categories = await this.fetchCategories();
-    if (this.productId) {
-      this.product = await this.fetchProduct();
-    }
-    console.log('product', this.product);
+    const categoryPromise = this.fetchCategories();
+    const productPromise = this.productId ?
+      this.fetchProduct() :
+      new Promise(resolve => resolve(this.defaultData));
+    const [product, category] = await Promise.all([productPromise, categoryPromise]);
+
+    this.product = this.productId ? product[0] : product;
+    this.categories = category;
 
     const wrapper = document.createElement('div');
     wrapper.innerHTML = this.template;
     this.element = wrapper.firstElementChild;
+
+    this.subElements = this.getSubElements(this.element);
+
+    this.onSubmit();
+
+    return this.element;
+  }
+
+  onSubmit() {
+    this.subElements.productForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.save();
+    });
+  }
+
+  save() {
+    const customEvent = this.productId ?
+      new CustomEvent('product-updated', {detail: this.productId}) :
+      new CustomEvent('product-saved');
+    this.element.dispatchEvent(customEvent);
   }
 
   remove() {
