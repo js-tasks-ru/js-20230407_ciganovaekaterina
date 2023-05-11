@@ -58,8 +58,8 @@ export default class ProductForm {
     wrapper.innerHTML = '<select id="subcategory" class="form-control" name="subcategory"></select>';
     const select = wrapper.firstElementChild;
     for (const category of this.categories) {
-      for (const item of category.subcategories){
-        select.append(new Option(`${category.title} > ${item.title}`, item.id, this.product.subcategory && this.product.subcategory === item.id))
+      for (const item of category.subcategories) {
+        select.append(new Option(`${category.title} > ${item.title}`, item.id, this.product.subcategory && this.product.subcategory === item.id));
       }
     }
 
