@@ -84,11 +84,7 @@ export default class ProductForm {
 
   get imageListTemplate() {
     if (!this.product.images || this.product.images.length === 0) {return '';}
-    return `<div data-element="imageListContainer">
-          <ul class="sortable-list">
-            ${this.product.images.map((image) => this.getImageItem(image.url, image.source)).join('')}
-          </ul>
-        </div>`;
+    return this.product.images.map((image) => this.getImageItem(image.url, image.source)).join('');
   }
 
   get template() {
@@ -121,7 +117,11 @@ export default class ProductForm {
       </div>
       <div class="form-group form-group__wide" data-element="sortable-list-container">
         <label class="form-label">Фото</label>
-        ${this.imageListTemplate}
+        <div data-element="imageListContainer">
+          <ul class="sortable-list">
+            ${this.imageListTemplate}
+          </ul>
+        </div>
         <button type="button" name="uploadImage" class="button-primary-outline"><span>Загрузить</span></button>
       </div>
       <div class="form-group form-group__half_left">
