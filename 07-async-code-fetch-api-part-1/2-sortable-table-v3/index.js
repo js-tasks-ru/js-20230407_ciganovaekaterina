@@ -102,14 +102,15 @@ export default class SortableTable {
     </div>`;
   }
 
-  async render() {
+  render() {
     const wrapper = document.createElement("div");
     wrapper.innerHTML = this.template;
 
     this.element = wrapper.firstElementChild;
     this.subElements = this.getSubElements(this.element);
 
-    await this.update();
+    //Убрала await, т.к. после нет никакого кода
+    this.update();
   }
 
   async update() {
@@ -151,7 +152,7 @@ export default class SortableTable {
     function sortFunction(a, b) {
       if (sortType === 'number') {
         return a - b;
-      } else {
+      } else if (sortType === 'string'){
         return a.localeCompare(b, ['ru', 'en'], {caseFirst: 'upper'});
       }
     }
@@ -163,6 +164,7 @@ export default class SortableTable {
     this.start = 0;
     this.end = this.start + this.step;
     this.data = await this.fetchData(id, order, this.start, this.end);
+    //Тут нужен async/await, так как мне нужно подождать пока обновится this.data, чтобы в this.sort поменять содержимое this.subElements.body
   }
 
   onScroll = async () => {
